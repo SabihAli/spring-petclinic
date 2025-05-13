@@ -1,18 +1,4 @@
-/*
- * Copyright 2012-2019 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package org.springframework.samples.petclinic.vet;
 
 import java.util.Comparator;
@@ -40,35 +26,43 @@ import jakarta.xml.bind.annotation.XmlElement;
  * @author Sam Brannen
  * @author Arjen Poutsma
  */
+
 @Entity
 @Table(name = "vets")
 public class Vet extends Person {
 
 	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
-			inverseJoinColumns = @JoinColumn(name = "specialty_id"))
-	private Set<Specialty> specialties;
+	@JoinTable(name = "vet_specialties",
+		joinColumns = @JoinColumn(name = "vet_id"),
+		inverseJoinColumns = @JoinColumn(name = "specialty_id"))
+	private Set<Specialty> specialties = new HashSet<>();
 
-	protected Set<Specialty> getSpecialtiesInternal() {
-		if (this.specialties == null) {
-			this.specialties = new HashSet<>();
-		}
-		return this.specialties;
-	}
-
+	/**
+	 * Returns the specialties sorted by name.
+	 */
 	@XmlElement
 	public List<Specialty> getSpecialties() {
-		return getSpecialtiesInternal().stream()
+		return specialties.stream()
 			.sorted(Comparator.comparing(NamedEntity::getName))
 			.collect(Collectors.toList());
 	}
 
+	/**
+	 * Returns the raw (unsorted) internal set of specialties.
+	 */
+	protected Set<Specialty> getSpecialtiesInternal() {
+		return this.specialties;
+	}
+
 	public int getNrOfSpecialties() {
-		return getSpecialtiesInternal().size();
+		return specialties.size();
 	}
 
 	public void addSpecialty(Specialty specialty) {
-		getSpecialtiesInternal().add(specialty);
+		this.specialties.add(specialty);
 	}
 
+	public boolean hasSpecialty(Specialty specialty) {
+		return this.specialties.contains(specialty);
+	}
 }
